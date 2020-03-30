@@ -1,0 +1,13 @@
+.edm-preview {
+    box-shadow: 0 10px 20px rgba(black, 0.1);
+    width: 200px;
+    display: block;
+    margin: 0 auto;
+    border: 1px solid black;
+
+    img {
+        display: block;
+        padding: 0;
+        width: 100%;
+    }
+}
