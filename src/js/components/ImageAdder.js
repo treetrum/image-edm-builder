@@ -59,6 +59,7 @@ const ImageAdder = () => {
 
     return (
         <div className="image-adder">
+            <h1>EDM Builder</h1>
             <div className="edm-preview">
                 {images.map(({ uploadData = {} }, index) => {
                     return (
