@@ -62,6 +62,7 @@ exports.handler = async (event, context) => {
     }
     imagesMarkup = imagesMarkup.join("\n");
 
+    console.log("Generating markup");
     // Replace all variables with filled in content, minify the HTML
     const responseBody = minifyHTML(
         template
@@ -73,6 +74,7 @@ exports.handler = async (event, context) => {
     );
 
     // Create a zip
+    console.log("Creating zip");
     const zip = new JSZip();
     zip.file("index.html", responseBody);
     const images = zip.folder("images");
@@ -82,6 +84,7 @@ exports.handler = async (event, context) => {
     const zipData = await zip.generateAsync({ type: "nodebuffer" });
 
     // Upload html to s3
+    console.log("Uploading html to s3");
     const htmlUploadResponse = await upload({
         Bucket: process.env.BUCKET_NAME,
         Key: `edms/${data.edm_id}/index.html`,
@@ -91,6 +94,7 @@ exports.handler = async (event, context) => {
     });
 
     // Upload zip to s3
+    console.log("Uploading zip to s3");
     const zipUploadResponse = await upload({
         Bucket: process.env.BUCKET_NAME,
         Key: `edms/${data.edm_id}/edm.zip`,
@@ -99,6 +103,7 @@ exports.handler = async (event, context) => {
         ContentType: "application/zip"
     });
 
+    console.log("Success - responding now.");
     return {
         headers: {
             "Content-Type": "application/json"
