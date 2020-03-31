@@ -50,7 +50,9 @@ exports.handler = async (event, context) => {
             imagesMarkup.push(`<tr>
                 <td>
                     ${section.link ? `<a href="${section.link}">` : ""}
-                    <img src="${section.public_url}" alt=""/>
+                    <img src="${
+                        section.public_url
+                    }" alt="" style="width: 600px" width="600"/>
                     ${section.link ? `</a>` : ""}
                 </td>
             </tr>`);
