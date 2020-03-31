@@ -23,11 +23,12 @@ exports.handler = async (event, context) => {
     if (!fileType) {
         return createErrorResponse("missing fileType parameter");
     }
+    const uploadFileName = `images/${fileName}`;
     const url = s3.getSignedUrl("putObject", {
         Bucket: process.env.BUCKET_NAME,
         Expires: 60, // 1 hour expiry
         ACL: "public-read",
-        Key: fileName,
+        Key: uploadFileName,
         ContentType: fileType
     });
     return {
@@ -35,6 +36,9 @@ exports.handler = async (event, context) => {
             "Content-Type": "application/json"
         },
         statusCode: 200,
-        body: JSON.stringify({ url })
+        body: JSON.stringify({
+            url,
+            publicUrl: `https://${process.env.BUCKET_NAME}.s3-ap-southeast-2.amazonaws.com/${uploadFileName}`
+        })
     };
 };

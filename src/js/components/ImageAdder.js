@@ -3,31 +3,23 @@ import React, { useState, useRef, useEffect } from "react";
 const cloudName = "image-edm-builder";
 const unsignedUploadPreset = "q6wqyxqr";
 
-const uploadImage = async file => {
-    const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
-    const fd = new FormData();
-    fd.append("upload_preset", unsignedUploadPreset);
-    fd.append("tags", "browser_upload"); // Optional - add tag for image admin in Cloudinary
-    fd.append("file", file);
-    const res = await fetch(url, {
-        method: "POST",
-        body: fd
-    });
-    const json = await res.json();
-    return json;
+/**
+ * @param {File} file
+ */
+const getPresignedURL = async file => {
+    const res = await fetch(
+        `/.netlify/functions/get_presigned_url?fileName=${file.name}&fileType=${file.type}`
+    );
+    return await res.json();
 };
 
-const template = `<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-</head>
-<div style="display: none; max-height: 0px; overflow: hidden;">Myrtle | Botany</div>
-<body width="100%" bgcolor="#ffffff" style="margin: 0; mso-line-height-rule: exactly;">
-<table role="presentation" aria-hidden="true" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 655px; background-color: #ffffff; border: 1px solid #f7f7f7;">
-{{images}}
-</table>
-</body>
-</html>`;
+const createEdmLinks = async edmData => {
+    const res = await fetch(`/.netlify/functions/create_edm`, {
+        method: "POST",
+        body: JSON.stringify(edmData)
+    });
+    return await res.json();
+};
 
 const ImageAdder = () => {
     const [images, setImages] = useState([]);
@@ -35,23 +27,27 @@ const ImageAdder = () => {
     const [uploaderValue, setUploaderValue] = useState("");
     const [html, setHtml] = useState("");
 
+    const [publicUrl, setPublicUrl] = useState("");
+    const [downloadLink, setDownloadLink] = useState("");
+
     const inputRef = useRef(null);
 
     useEffect(() => {
         for (const image of images) {
             if (!image.uploaded) {
-                uploadImage(image.file).then(res => {
-                    setImages(allImages => {
-                        const i = allImages.findIndex(
-                            img =>
-                                img.file.name ===
-                                res.secure_url.split("/").pop()
-                        );
-                        const image = allImages[i];
-                        allImages[i].uploadData = res;
-                        return allImages;
+                getPresignedURL(image.file).then(({ url, publicUrl }) => {
+                    fetch(url, { method: "PUT", body: image.file }).then(() => {
+                        setImages(allImages => {
+                            const i = allImages.findIndex(
+                                img =>
+                                    img.file.name === publicUrl.split("/").pop()
+                            );
+                            const image = allImages[i];
+                            allImages[i].uploadData = { publicUrl };
+                            return allImages;
+                        });
+                        setUploadCount(i => i + 1);
                     });
-                    setUploadCount(i => i + 1);
                 });
             }
         }
@@ -64,8 +60,8 @@ const ImageAdder = () => {
                 {images.map(({ uploadData = {} }, index) => {
                     return (
                         <div key={index}>
-                            {uploadData.secure_url ? (
-                                <img src={uploadData.secure_url} alt="" />
+                            {uploadData.publicUrl ? (
+                                <img src={uploadData.publicUrl} alt="" />
                             ) : (
                                 <p>Loading...</p>
                             )}
@@ -91,40 +87,36 @@ const ImageAdder = () => {
                 />
             </div>
             <button
-                onClick={() => {
-                    // let html = template;
-                    // const imageMarkup = images
-                    //     .map(
-                    //         image =>
-                    //             `<tr><td><img width="100%" style="display:block;" alt="" src="${image.uploadData.secure_url}" /></td></tr>`
-                    //     )
-                    //     .join("\n");
-                    // html = html.replace("{{images}}", imageMarkup);
-                    // setHtml(html);
-
+                onClick={async () => {
                     const data = {};
                     data.edm_id = "test-edm";
                     data.preheader = "Example Preheader";
                     data.sections = images.map(image => ({
                         link: "",
                         alt: "",
-                        public_url: image.uploadData.secure_url
+                        public_url: image.uploadData.publicUrl
                     }));
-                    setHtml(JSON.stringify(data, null, 2));
-                    // console.log(data);
+                    const response = await createEdmLinks(data);
+                    console.log(response);
+                    setPublicUrl(response.publicURL);
+                    setDownloadLink(response.zipDownload);
                 }}
             >
-                Generate Code
+                Generate EDM
             </button>
             <div>
-                <textarea
-                    name=""
-                    id=""
-                    cols="30"
-                    rows="10"
-                    value={html}
-                    onChange={() => {}}
-                />
+                {publicUrl && (
+                    <a target="_blank" href={publicUrl}>
+                        View in browser
+                    </a>
+                )}
+            </div>
+            <div>
+                {downloadLink && (
+                    <a target="_blank" href={downloadLink}>
+                        Download zip
+                    </a>
+                )}
             </div>
         </div>
     );
