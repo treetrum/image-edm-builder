@@ -1,5 +1,5 @@
 {
-    "name": "create_zip",
+    "name": "edm-builder-functions",
     "version": "1.0.0",
     "description": "",
     "main": "create_zip.js",

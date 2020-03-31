@@ -103,17 +103,18 @@ const ImageAdder = () => {
                     // setHtml(html);
 
                     const data = {};
-                    data.preheader = "";
+                    data.edm_id = "test-edm";
+                    data.preheader = "Example Preheader";
                     data.sections = images.map(image => ({
                         link: "",
                         alt: "",
                         public_url: image.uploadData.secure_url
                     }));
-                    setHtml(JSON.stringify(data));
+                    setHtml(JSON.stringify(data, null, 2));
                     // console.log(data);
                 }}
             >
-                Generate HTML
+                Generate Code
             </button>
             <div>
                 <textarea
