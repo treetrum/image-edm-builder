@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel src/index.html",
-    "build": "parcel build src/index.html"
+    "build": "parcel build src/index.html",
+    "prebuild": "node scripts/dependancy-installer.js"
   },
   "keywords": [],
   "author": "",
