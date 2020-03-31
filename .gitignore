@@ -4,3 +4,6 @@ node_modules
 sample-edm.json
 # Local Netlify folder
 .netlify
+tmp
+.env
+.DS_Store
