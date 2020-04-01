@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import imageCompression from "browser-image-compression";
 
 const cloudName = "image-edm-builder";
 const unsignedUploadPreset = "q6wqyxqr";
@@ -26,6 +27,7 @@ const ImageAdder = () => {
     const [uploadCount, setUploadCount] = useState(0);
     const [uploaderValue, setUploaderValue] = useState("");
     const [html, setHtml] = useState("");
+    const [status, setStatus] = useState("Ready");
 
     const [publicUrl, setPublicUrl] = useState("");
     const [downloadLink, setDownloadLink] = useState("");
@@ -33,29 +35,44 @@ const ImageAdder = () => {
     const inputRef = useRef(null);
 
     useEffect(() => {
+        setStatus("Loading...");
         for (const image of images) {
             if (!image.uploaded) {
-                getPresignedURL(image.file).then(({ url, publicUrl }) => {
-                    fetch(url, { method: "PUT", body: image.file }).then(() => {
-                        setImages(allImages => {
-                            const i = allImages.findIndex(
-                                img =>
-                                    img.file.name === publicUrl.split("/").pop()
-                            );
-                            const image = allImages[i];
-                            allImages[i].uploadData = { publicUrl };
-                            return allImages;
+                // Compress Image
+                imageCompression(image.file, {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 99999
+                }).then(compressed => {
+                    // Upload it
+                    getPresignedURL(compressed).then(({ url, publicUrl }) => {
+                        fetch(url, {
+                            method: "PUT",
+                            body: compressed
+                        }).then(() => {
+                            setImages(allImages => {
+                                const i = allImages.findIndex(
+                                    img =>
+                                        img.file.name ===
+                                        publicUrl.split("/").pop()
+                                );
+                                const image = allImages[i];
+                                allImages[i].file = compressed;
+                                allImages[i].uploadData = { publicUrl };
+                                return allImages;
+                            });
+                            setUploadCount(i => i + 1);
                         });
-                        setUploadCount(i => i + 1);
                     });
                 });
             }
         }
+        setStatus("Ready");
     }, [images]);
 
     return (
         <div className="image-adder">
             <h1>EDM Builder</h1>
+            <p>Status: {status}</p>
             <div className="edm-preview">
                 {images.map(({ uploadData = {} }, index) => {
                     return (
@@ -88,6 +105,7 @@ const ImageAdder = () => {
             </div>
             <button
                 onClick={async () => {
+                    setStatus("Loading");
                     const data = {};
                     data.edm_id = "test-edm";
                     data.preheader = "Example Preheader";
@@ -98,6 +116,7 @@ const ImageAdder = () => {
                     }));
                     const response = await createEdmLinks(data);
                     console.log(response);
+                    setStatus("Ready");
                     setPublicUrl(response.publicURL);
                     setDownloadLink(response.zipDownload);
                 }}
