@@ -34,32 +34,31 @@ exports.handler = async (event, context) => {
     // Generate the markup for each section
     let imagesMarkup = [];
     let imagesData = [];
-    for (const section of data.sections) {
-        // Download each image
+
+    const promises = data.sections.map(section => {
         console.log(`Downloading: ${section.public_url}`);
-        try {
-            const downloadedImage = await request.get({
-                url: section.public_url,
-                encoding: null
+        return request
+            .get({ url: section.public_url, encoding: null })
+            .then(downloaded => {
+                imagesData.push({
+                    data: Buffer.from(downloaded, "utf8"),
+                    name: section.public_url.split("/").pop()
+                });
+                imagesMarkup.push(`<tr>
+                    <td>
+                        ${section.link ? `<a href="${section.link}">` : ""}
+                        <img src="${
+                            section.public_url
+                        }" alt="" style="width: 600px" width="600"/>
+                        ${section.link ? `</a>` : ""}
+                    </td>
+                </tr>`);
+                console.log(`Downloaded: ${section.public_url}`);
             });
-            console.log("Downloaded successfully");
-            imagesData.push({
-                data: Buffer.from(downloadedImage, "utf8"),
-                name: section.public_url.split("/").pop()
-            });
-            imagesMarkup.push(`<tr>
-                <td>
-                    ${section.link ? `<a href="${section.link}">` : ""}
-                    <img src="${
-                        section.public_url
-                    }" alt="" style="width: 600px" width="600"/>
-                    ${section.link ? `</a>` : ""}
-                </td>
-            </tr>`);
-        } catch (error) {
-            throw error;
-        }
-    }
+    });
+
+    await Promise.all(promises);
+
     imagesMarkup = imagesMarkup.join("\n");
 
     console.log("Generating markup");
