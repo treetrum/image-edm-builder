@@ -35,29 +35,35 @@ exports.handler = async (event, context) => {
     let imagesMarkup = [];
     let imagesData = [];
 
-    const promises = data.sections.map(section => {
+    const promises = data.sections.map(async section => {
         console.log(`Downloading: ${section.public_url}`);
-        return request
-            .get({ url: section.public_url, encoding: null })
-            .then(downloaded => {
-                imagesData.push({
-                    data: Buffer.from(downloaded, "utf8"),
-                    name: section.public_url.split("/").pop()
-                });
-                imagesMarkup.push(`<tr>
-                    <td>
-                        ${section.link ? `<a href="${section.link}">` : ""}
-                        <img src="${
-                            section.public_url
-                        }" alt="" style="width: 600px" width="600"/>
-                        ${section.link ? `</a>` : ""}
-                    </td>
-                </tr>`);
-                console.log(`Downloaded: ${section.public_url}`);
-            });
+        const downloaded = await request.get({
+            url: section.public_url,
+            encoding: null
+        });
+        console.log(`Downloaded: ${section.public_url}`);
+        return {
+            data: {
+                data: Buffer.from(downloaded, "utf8"),
+                name: section.public_url.split("/").pop()
+            },
+            markup: `<tr>
+                <td>
+                    ${section.link ? `<a href="${section.link}">` : ""}
+                    <img src="${
+                        section.public_url
+                    }" alt="" style="width: 600px" width="600"/>
+                    ${section.link ? `</a>` : ""}
+                </td>
+            </tr>`
+        };
     });
 
-    await Promise.all(promises);
+    const responses = await Promise.all(promises);
+    responses.forEach(({ data, markup }) => {
+        imagesMarkup.push(markup);
+        imagesData.push(data);
+    });
 
     imagesMarkup = imagesMarkup.join("\n");
 
