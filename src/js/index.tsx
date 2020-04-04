@@ -28,7 +28,6 @@ const App = () => {
 
     React.useEffect(() => {
         if (!user) {
-            netlifyIdentity.close();
             netlifyIdentity.open();
         }
     }, [user]);
