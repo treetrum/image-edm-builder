@@ -25,6 +25,17 @@ const upload = (config) => {
 };
 
 exports.handler = async (event, context) => {
+    const { identity, user } = context.clientContext;
+    if (!user || !user.email) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({
+                success: false,
+                message: "Not authorized",
+            }),
+        };
+    }
+
     // Attempt to read the data
     const data = JSON.parse(event.body);
 

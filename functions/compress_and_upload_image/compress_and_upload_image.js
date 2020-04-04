@@ -41,6 +41,17 @@ const checkParams = (body, params) => {
 };
 
 exports.handler = async (event, context) => {
+    const { identity, user } = context.clientContext;
+    if (!user || !user.email) {
+        return {
+            statusCode: 401,
+            body: JSON.stringify({
+                success: false,
+                message: "Not authorized",
+            }),
+        };
+    }
+
     const body = JSON.parse(event.body);
 
     // Check requried params
