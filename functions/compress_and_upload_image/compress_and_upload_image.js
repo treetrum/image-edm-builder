@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
-const sharp = require("sharp");
 const AWS = require("aws-sdk");
+const Jimp = require("jimp");
 
 const s3 = new AWS.S3({
     accessKeyId: process.env.ACCESS_KEY_ID,
@@ -57,9 +57,10 @@ exports.handler = async (event, context) => {
     const encodedImage = body.image;
     const decodedImage = Buffer.from(encodedImage, "base64");
 
-    const compressed = await sharp(decodedImage)
-        .jpeg({ quality: 85 })
-        .toBuffer();
+    const jimpImage = await Jimp.read(decodedImage);
+    const compressed = await jimpImage
+        .quality(85)
+        .getBufferAsync(body.file_type);
 
     // Log file sizes
     console.log({

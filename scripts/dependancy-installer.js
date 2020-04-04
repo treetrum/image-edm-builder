@@ -4,15 +4,7 @@ const globby = require("globby");
 const cp = require("child_process");
 
 function installDeps(functionDir, cb) {
-    cp.exec("npm i", { cwd: functionDir }, () => {
-        cp.exec("rm -rf node_modules/sharp", { cwd: functionDir }, () => {
-            cp.exec(
-                "npm install --arch=x64 --platform=linux sharp",
-                { cwd: functionDir },
-                cb
-            );
-        });
-    });
+    cp.exec("npm i", { cwd: functionDir }, cb);
 }
 
 (async () => {
