@@ -10,10 +10,10 @@ const TEMPLATE_PATH = path.join(__dirname, "./template.html");
 
 const s3 = new AWS.S3({
     accessKeyId: process.env.ACCESS_KEY_ID,
-    secretAccessKey: process.env.SECRET_ACCESS_KEY
+    secretAccessKey: process.env.SECRET_ACCESS_KEY,
 });
 
-const upload = config => {
+const upload = (config) => {
     return new Promise((resolve, reject) => {
         s3.upload(config, (err, data) => {
             if (err) {
@@ -35,17 +35,17 @@ exports.handler = async (event, context) => {
     let imagesMarkup = [];
     let imagesData = [];
 
-    const promises = data.sections.map(async section => {
+    const promises = data.sections.map(async (section) => {
         console.log(`Downloading: ${section.public_url}`);
         const downloaded = await request.get({
             url: section.public_url,
-            encoding: null
+            encoding: null,
         });
         console.log(`Downloaded: ${section.public_url}`);
         return {
             data: {
                 data: Buffer.from(downloaded, "utf8"),
-                name: section.public_url.split("/").pop()
+                name: section.public_url.split("/").pop(),
             },
             markup: `<tr>
                 <td>
@@ -55,7 +55,7 @@ exports.handler = async (event, context) => {
                     }" alt="" style="width: 600px" width="600"/>
                     ${section.link ? `</a>` : ""}
                 </td>
-            </tr>`
+            </tr>`,
         };
     });
 
@@ -74,7 +74,7 @@ exports.handler = async (event, context) => {
             .replace("{{images}}", imagesMarkup)
             .replace("{{preheader}}", data.preheader),
         {
-            collapseWhitespace: true
+            collapseWhitespace: true,
         }
     );
 
@@ -88,35 +88,44 @@ exports.handler = async (event, context) => {
     }
     const zipData = await zip.generateAsync({ type: "nodebuffer" });
 
+    // Create datestring
+    const date = new Date();
+    const year = date.getFullYear();
+    let month = date.getMonth() + 1;
+    let day = date.getDate();
+    month = month < 10 ? "0" + month : month;
+    day = day < 10 ? "0" + day : day;
+    const datestring = `${year}${month}${day}`;
+
     // Upload html to s3
     console.log("Uploading html to s3");
     const htmlUploadResponse = await upload({
         Bucket: process.env.BUCKET_NAME,
-        Key: `edms/${data.edm_id}/index.html`,
+        Key: `edms/${data.edm_id}-${datestring}/index.html`,
         Body: Buffer.from(responseBody),
         ACL: "public-read",
-        ContentType: "text/html"
+        ContentType: "text/html",
     });
 
     // Upload zip to s3
     console.log("Uploading zip to s3");
     const zipUploadResponse = await upload({
         Bucket: process.env.BUCKET_NAME,
-        Key: `edms/${data.edm_id}/edm.zip`,
+        Key: `edms/${data.edm_id}-${datestring}/edm.zip`,
         Body: zipData,
         ACL: "public-read",
-        ContentType: "application/zip"
+        ContentType: "application/zip",
     });
 
     console.log("Success - responding now.");
     return {
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         },
         statusCode: 200,
         body: JSON.stringify({
             publicURL: htmlUploadResponse.Location,
-            zipDownload: zipUploadResponse.Location
-        })
+            zipDownload: zipUploadResponse.Location,
+        }),
     };
 };

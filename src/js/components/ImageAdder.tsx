@@ -7,7 +7,7 @@ import Button from "./Button";
 import EDMPreview from "./EDMPreview";
 import DragItem from "./DragItem";
 import Frame from "./Frame";
-
+import TreeInput from "./TreeInput";
 import SpinnerSVG from "../../images/spinner.svg";
 
 export interface SectionType {
@@ -18,13 +18,18 @@ export interface SectionType {
 }
 
 const ImageAdder = () => {
+    const fileUploadInputRef = React.useRef(null);
     const [sections, setSections] = React.useState<SectionType[]>([]);
     const [publicUrl, setPublicUrl] = React.useState("");
     const [downloadLink, setDownloadLink] = React.useState("");
     const [loading, setLoading] = React.useState(false);
     const [edmName, setEdmName] = React.useState("");
     const [edmNameError, setEdmNameError] = React.useState(false);
-    const fileUploadInputRef = React.useRef(null);
+    const imagesUploading = !!sections.find((section) => !section.uploaded);
+    const [preheader, setPreheader] = React.useState("");
+    const [focussedImage, setFocussedImage] = React.useState<null | number>(
+        null
+    );
 
     React.useEffect(() => {
         const needsUploading = !!sections.find((section) => !section.uploaded);
@@ -59,7 +64,7 @@ const ImageAdder = () => {
         setLoading(true);
         const data = {
             edm_id: edmName,
-            preheader: "",
+            preheader: preheader,
             sections: sections.map((section) => ({
                 link: section.link || "",
                 alt: "",
@@ -106,10 +111,6 @@ const ImageAdder = () => {
             });
         });
     };
-
-    const [focussedImage, setFocussedImage] = React.useState<null | number>(
-        null
-    );
 
     const renderDragDrop = () => {
         return (
@@ -165,61 +166,50 @@ const ImageAdder = () => {
         );
     };
 
-    const imagesUploading = !!sections.find((section) => !section.uploaded);
-
     return (
         <Frame
             title="EDM Creator"
             body={
                 <>
                     <div>
-                        <div className="edm-namer">
-                            <label
-                                className="edm-namer__label"
-                                htmlFor="edmName"
-                            >
-                                EDM ID
-                            </label>
-                            {sections.length === 0 ? (
-                                <>
-                                    <input
-                                        name="edmName"
-                                        id="edmName"
-                                        type="text"
-                                        value={edmName}
-                                        onChange={(event) => {
-                                            const value = event.target.value;
-                                            setEdmName(value.toLowerCase());
-                                            const re = new RegExp(
-                                                /^[a-z\-]+$/,
-                                                "g"
-                                            );
-                                            if (re.test(value)) {
-                                                setEdmNameError(false);
-                                            } else {
-                                                setEdmNameError(true);
-                                            }
-
-                                            if (value.includes(" ")) {
-                                            } else {
-                                            }
-                                        }}
-                                        className="edm-namer__input"
-                                        placeholder="example-edm-id"
-                                        disabled={sections.length !== 0}
-                                    />
-                                    <div
-                                        className={`edm-namer__${
-                                            edmNameError ? "error" : "info"
-                                        }`}
-                                    >
-                                        lowercase letters & dashes only
-                                    </div>
-                                </>
-                            ) : (
-                                <p>{edmName}</p>
-                            )}
-                        </div>
+                        <TreeInput
+                            id="edm-name"
+                            label="Unique ID"
+                            info={
+                                sections.length !== 0
+                                    ? `Click "Start Again" to change this`
+                                    : edmNameError
+                                    ? ""
+                                    : "Lowercase letters & dashes only"
+                            }
+                            error={
+                                edmNameError
+                                    ? "Lowercase letters & dashes only"
+                                    : ""
+                            }
+                            value={edmName}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                setEdmName(value.toLowerCase());
+                                const re = new RegExp(/^[a-z\-]+$/, "g");
+                                if (re.test(value)) {
+                                    setEdmNameError(false);
+                                } else {
+                                    setEdmNameError(true);
+                                }
+                            }}
+                            placeholder="example-edm-id"
+                            disabled={sections.length !== 0}
+                        />
+                        <TreeInput
+                            id="preheader"
+                            label="Pre Header Text"
+                            info="Shown under the subject line in email clients"
+                            onChange={(event) => {
+                                setPreheader(event.target.value);
+                            }}
+                            value={preheader}
+                        />
                     </div>
 
                     {sections.length === 0 ? (

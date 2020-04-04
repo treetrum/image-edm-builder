@@ -68,10 +68,19 @@ exports.handler = async (event, context) => {
         newFileSize: `${(compressed.length / 1024 / 1024).toFixed(2)}MB`,
     });
 
+    // Create datestring
+    const date = new Date();
+    const year = date.getFullYear();
+    let month = date.getMonth() + 1;
+    let day = date.getDate();
+    month = month < 10 ? "0" + month : month;
+    day = day < 10 ? "0" + day : day;
+    const datestring = `${year}${month}${day}`;
+
     // Upload image to S3
     const uploadResponse = await upload({
         Bucket: process.env.BUCKET_NAME,
-        Key: `images/${body.edm_id}/${body.file_name}`,
+        Key: `images/${body.edm_id}-${datestring}/${body.file_name}`,
         Body: compressed,
         ACL: "public-read",
         ContentType: body.file_type,
