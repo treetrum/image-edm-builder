@@ -9,11 +9,14 @@ NetlifyIdentityWidget.init();
 const App = () => {
     const [user, setUser] = React.useState(NetlifyIdentityWidget.currentUser());
     React.useEffect(() => {
-        NetlifyIdentityWidget.open("login");
-        NetlifyIdentityWidget.on("login", (user) => {
-            setUser(user);
-        });
-    }, []);
+        if (!user) {
+            NetlifyIdentityWidget.open("login");
+            NetlifyIdentityWidget.on("login", (user) => {
+                setUser(user);
+            });
+        }
+    }, [user]);
+    console.log(user);
     if (!user) {
         return null;
     }
