@@ -8,7 +8,9 @@ import EDMPreview from "./EDMPreview";
 import DragItem from "./DragItem";
 import Frame from "./Frame";
 
-interface SectionType {
+import SpinnerSVG from "../../images/spinner.svg";
+
+export interface SectionType {
     file: File;
     uploaded: boolean;
     publicUrl?: string;
@@ -52,6 +54,8 @@ const ImageAdder = () => {
     }, [sections]);
 
     const generateEDM = async () => {
+        setPublicUrl("");
+        setDownloadLink("");
         setLoading(true);
         const data = {
             edm_id: edmName,
@@ -69,6 +73,7 @@ const ImageAdder = () => {
     };
 
     const handleDragEnd = ({ source, destination }) => {
+        setFocussedImage(null);
         setSections((old) => {
             return moveItemInArray(old, source.index, destination.index);
         });
@@ -101,6 +106,10 @@ const ImageAdder = () => {
             });
         });
     };
+
+    const [focussedImage, setFocussedImage] = React.useState<null | number>(
+        null
+    );
 
     const renderDragDrop = () => {
         return (
@@ -137,6 +146,12 @@ const ImageAdder = () => {
                                                         index,
                                                         e.target.value
                                                     ),
+                                                onFocus: () => {
+                                                    setFocussedImage(index);
+                                                },
+                                                onBlur: () => {
+                                                    setFocussedImage(null);
+                                                },
                                             }}
                                         />
                                     )}
@@ -149,6 +164,8 @@ const ImageAdder = () => {
             </DragDropContext>
         );
     };
+
+    const imagesUploading = !!sections.find((section) => !section.uploaded);
 
     return (
         <Frame
@@ -279,16 +296,29 @@ const ImageAdder = () => {
                 </>
             }
             preview={
-                sections.length > 0 ? (
-                    <EDMPreview sections={sections} />
+                sections.length > 0 && !imagesUploading ? (
+                    <EDMPreview
+                        focussedImageIndex={focussedImage}
+                        sections={sections}
+                    />
                 ) : (
                     <div className="preview-info">
                         <div className="preview-info__inner">
-                            <h3>EDM Preview</h3>
-                            <p>
-                                A live preview of your EDM will appear here once
-                                you begin
-                            </p>
+                            {imagesUploading ? (
+                                <img
+                                    style={{ width: 75 }}
+                                    src={SpinnerSVG}
+                                    alt=""
+                                />
+                            ) : (
+                                <>
+                                    <h3>EDM Preview</h3>
+                                    <p>
+                                        A live preview of your EDM will appear
+                                        here once you begin
+                                    </p>
+                                </>
+                            )}
                         </div>
                     </div>
                 )
