@@ -1,6 +1,6 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import netlifyIdentity from "netlify-identity-widget";
+import * as netlifyIdentity from "netlify-identity-widget";
 
 import ImageAdder from "./components/ImageAdder";
 
@@ -29,7 +29,7 @@ const App = () => {
     React.useEffect(() => {
         if (!user) {
             netlifyIdentity.close();
-            netlifyIdentity.open("login");
+            netlifyIdentity.open();
         }
     }, [user]);
 
