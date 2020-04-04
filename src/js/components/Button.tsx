@@ -6,7 +6,13 @@ interface PropsType {
     [key: string]: any;
 }
 
-const Button: React.FC<PropsType> = ({ visible, children, ...props }) => {
+const Button: React.FC<
+    PropsType &
+        React.DetailedHTMLProps<
+            React.AnchorHTMLAttributes<HTMLAnchorElement>,
+            HTMLAnchorElement
+        >
+> = ({ visible, children, ...props }) => {
     if (!visible) return null;
     return (
         <a className="button" {...props}>

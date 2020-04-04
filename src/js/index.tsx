@@ -1,8 +1,9 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import * as netlifyIdentity from "netlify-identity-widget";
+import netlifyIdentity from "netlify-identity-widget";
 
 import ImageAdder from "./components/ImageAdder";
+import Button from "./components/Button";
 
 window["netlifyIdentity"] = netlifyIdentity;
 
@@ -15,27 +16,32 @@ const App = () => {
         netlifyIdentity.on("login", (user) => {
             setUser(user);
             netlifyIdentity.close();
-            console.log("login", user);
         });
         netlifyIdentity.on("logout", () => {
-            console.log("Logged out");
             setUser(null);
         });
         netlifyIdentity.on("error", (err) => console.error("Error", err));
-        netlifyIdentity.on("open", () => console.log("Widget opened"));
-        netlifyIdentity.on("close", () => console.log("Widget closed"));
     });
 
-    React.useEffect(() => {
-        if (!user) {
-            netlifyIdentity.open();
-        }
-    }, [user]);
-
     if (!user) {
-        return null;
+        return (
+            <div className="modal">
+                <div className="modal__inner">
+                    <div className="login">
+                        <h2>Login to continue</h2>
+                        <Button
+                            onClick={() => {
+                                netlifyIdentity.open("login");
+                            }}
+                        >
+                            Login
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
     }
-    return <ImageAdder />;
+    return <ImageAdder user={user} />;
 };
 
 ReactDOM.render(<App />, document.getElementById("app"));

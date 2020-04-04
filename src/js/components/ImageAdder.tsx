@@ -8,6 +8,7 @@ import EDMPreview from "./EDMPreview";
 import DragItem from "./DragItem";
 import Frame from "./Frame";
 import TreeInput from "./TreeInput";
+import { User } from "netlify-identity-widget";
 import SpinnerSVG from "../../images/spinner.svg";
 
 export interface SectionType {
@@ -17,7 +18,9 @@ export interface SectionType {
     link?: string;
 }
 
-const ImageAdder = () => {
+const ImageAdder: React.FC<{ user: User }> = (props) => {
+    const Api = new API(props.user);
+
     const fileUploadInputRef = React.useRef(null);
     const [sections, setSections] = React.useState<SectionType[]>([]);
     const [publicUrl, setPublicUrl] = React.useState("");
@@ -38,7 +41,7 @@ const ImageAdder = () => {
         const promises = sections.map(
             async (section): Promise<SectionType> => {
                 if (!section.uploaded) {
-                    const result = await API.compressAndUploadImage(
+                    const result = await Api.compressAndUploadImage(
                         section.file,
                         "test-edm"
                     );
@@ -71,7 +74,7 @@ const ImageAdder = () => {
                 public_url: section.publicUrl,
             })),
         };
-        const { publicURL, zipDownload } = await API.generateEDMLinks(data);
+        const { publicURL, zipDownload } = await Api.generateEDMLinks(data);
         setPublicUrl(publicURL);
         setDownloadLink(zipDownload);
         setLoading(false);

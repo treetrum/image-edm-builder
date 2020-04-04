@@ -1,3 +1,5 @@
+import { User } from "netlify-identity-widget";
+
 interface EDMDataType {}
 
 const encodeImageFileAsURL = (file: File): Promise<string> => {
@@ -13,26 +15,29 @@ const encodeImageFileAsURL = (file: File): Promise<string> => {
 };
 
 class API {
-    static getPresignedURL = async (
-        file: File
-    ): Promise<{ url: string; publicUrl: string }> => {
-        const res = await fetch(
-            `/.netlify/functions/get_presigned_url?fileName=${file.name}&fileType=${file.type}`
-        );
-        return await res.json();
-    };
+    user: User;
+    defaultHeaders = {};
 
-    static generateEDMLinks = async (
+    constructor(user: User) {
+        this.user = user;
+        this.defaultHeaders = {
+            ...this.defaultHeaders,
+            Authorization: `Bearer ${this.user.token.access_token}`,
+        };
+    }
+
+    generateEDMLinks = async (
         edmData: EDMDataType
     ): Promise<{ publicURL: string; zipDownload: string }> => {
         const res = await fetch(`/.netlify/functions/create_edm`, {
             method: "POST",
+            headers: this.defaultHeaders,
             body: JSON.stringify(edmData),
         });
         return await res.json();
     };
 
-    static compressAndUploadImage = async (
+    compressAndUploadImage = async (
         file: File,
         edmId: string
     ): Promise<{ success: boolean; public_url: string }> => {
@@ -41,6 +46,7 @@ class API {
             "/.netlify/functions/compress_and_upload_image",
             {
                 method: "POST",
+                headers: this.defaultHeaders,
                 body: JSON.stringify({
                     file_type: file.type,
                     file_name: file.name,
