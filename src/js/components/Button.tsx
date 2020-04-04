@@ -9,14 +9,14 @@ interface PropsType {
 const Button: React.FC<PropsType> = ({ visible, children, ...props }) => {
     if (!visible) return null;
     return (
-        <a className="button" target="_blank" {...props}>
+        <a className="button" {...props}>
             {children}
         </a>
     );
 };
 
 Button.defaultProps = {
-    visible: true
+    visible: true,
 };
 
 export default Button;

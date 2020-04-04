@@ -16,7 +16,7 @@ const ImageAdder = () => {
     const [loading, setLoading] = React.useState(false);
 
     React.useEffect(() => {
-        const needsUploading = !!images.find(image => !image.uploaded);
+        const needsUploading = !!images.find((image) => !image.uploaded);
         if (!needsUploading) return;
         setLoading(true);
         const promises = images.map(
@@ -24,26 +24,26 @@ const ImageAdder = () => {
                 if (!image.uploaded) {
                     const compressed = await imageCompression(image.file, {
                         maxSizeMB: 1,
-                        maxWidthOrHeight: 99999
+                        maxWidthOrHeight: 99999,
                     });
                     const { url, publicUrl } = await API.getPresignedURL(
                         compressed
                     );
                     await fetch(url, {
                         method: "PUT",
-                        body: compressed
+                        body: compressed,
                     });
                     return {
                         file: compressed,
                         publicUrl: publicUrl,
-                        uploaded: true
+                        uploaded: true,
                     };
                 } else {
                     return image;
                 }
             }
         );
-        Promise.all(promises).then(images => {
+        Promise.all(promises).then((images) => {
             setImages(images);
             setLoading(false);
         });
@@ -54,11 +54,11 @@ const ImageAdder = () => {
         const data = {
             edm_id: "test-edm",
             preheader: "Example preheader",
-            sections: images.map(image => ({
+            sections: images.map((image) => ({
                 link: image.link || "",
                 alt: "",
-                public_url: image.publicUrl
-            }))
+                public_url: image.publicUrl,
+            })),
         };
         const { publicURL, zipDownload } = await API.generateEDMLinks(data);
         setPublicUrl(publicURL);
@@ -67,7 +67,7 @@ const ImageAdder = () => {
     };
 
     const handleDragEnd = ({ source, destination }) => {
-        setImages(old => {
+        setImages((old) => {
             return moveItemInArray(old, source.index, destination.index);
         });
     };
@@ -79,7 +79,7 @@ const ImageAdder = () => {
         for (const file of event.target.files) {
             newFiles.push({
                 file,
-                uploaded: false
+                uploaded: false,
             });
         }
         setImages(newFiles);
@@ -87,12 +87,12 @@ const ImageAdder = () => {
     };
 
     const handleSectionURLChange = (index: number, value: string) => {
-        setImages(old => {
+        setImages((old) => {
             return old.map((image, idx) => {
                 if (index === idx) {
                     return {
                         ...image,
-                        link: value
+                        link: value,
                     };
                 }
                 return image;
@@ -119,7 +119,7 @@ const ImageAdder = () => {
                     <hr />
                     <DragDropContext onDragEnd={handleDragEnd}>
                         <Droppable droppableId="reorderer">
-                            {provided => (
+                            {(provided) => (
                                 <div
                                     className="orderer"
                                     ref={provided.innerRef}
@@ -131,7 +131,7 @@ const ImageAdder = () => {
                                             draggableId={file.name}
                                             index={index}
                                         >
-                                            {provided => (
+                                            {(provided) => (
                                                 <DragItem
                                                     index={index}
                                                     ref={provided.innerRef}
@@ -146,11 +146,11 @@ const ImageAdder = () => {
                                                         value:
                                                             images[index]
                                                                 .link || "",
-                                                        onChange: e =>
+                                                        onChange: (e) =>
                                                             handleSectionURLChange(
                                                                 index,
                                                                 e.target.value
-                                                            )
+                                                            ),
                                                     }}
                                                 />
                                             )}
@@ -176,7 +176,11 @@ const ImageAdder = () => {
             }
             footer={
                 <>
-                    <Button visible={!!publicUrl} href={publicUrl}>
+                    <Button
+                        visible={!!publicUrl}
+                        href={publicUrl}
+                        target="_blank"
+                    >
                         View in browser
                     </Button>
                     <Button visible={!!downloadLink} href={downloadLink}>
