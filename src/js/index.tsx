@@ -41,7 +41,25 @@ const App = () => {
             </div>
         );
     }
-    return <ImageAdder user={user} />;
+    return (
+        <div>
+            <ImageAdder user={user} />
+            <Button
+                size="small"
+                color="red"
+                style={{
+                    position: "fixed",
+                    right: 30,
+                    bottom: 30,
+                }}
+                onClick={() => {
+                    netlifyIdentity.logout();
+                }}
+            >
+                Logout
+            </Button>
+        </div>
+    );
 };
 
 ReactDOM.render(<App />, document.getElementById("app"));

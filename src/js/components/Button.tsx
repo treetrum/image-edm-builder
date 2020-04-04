@@ -3,7 +3,8 @@ import * as React from "react";
 interface PropsType {
     visible?: boolean;
     children: React.ReactChild;
-    [key: string]: any;
+    size?: "small" | "regular";
+    color?: "red" | "blue";
 }
 
 const Button: React.FC<
@@ -12,10 +13,10 @@ const Button: React.FC<
             React.AnchorHTMLAttributes<HTMLAnchorElement>,
             HTMLAnchorElement
         >
-> = ({ visible, children, ...props }) => {
+> = ({ visible, children, size, color, ...props }) => {
     if (!visible) return null;
     return (
-        <a className="button" {...props}>
+        <a className={`button button--${size} button--${color}`} {...props}>
             {children}
         </a>
     );
@@ -23,6 +24,8 @@ const Button: React.FC<
 
 Button.defaultProps = {
     visible: true,
+    size: "regular",
+    color: "blue",
 };
 
 export default Button;
