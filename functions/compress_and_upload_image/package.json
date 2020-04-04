@@ -1,0 +1,16 @@
+{
+  "name": "compress_and_upload_image",
+  "version": "1.0.0",
+  "description": "",
+  "main": "compress_and_upload_image.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.653.0",
+    "sharp": "^0.25.2"
+  }
+}
