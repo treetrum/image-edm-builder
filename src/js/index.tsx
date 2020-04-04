@@ -1,34 +1,35 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import * as NetlifyIdentityWidget from "netlify-identity-widget";
+import netlifyIdentity from "netlify-identity-widget";
 
 import ImageAdder from "./components/ImageAdder";
 
-window["netlifyIdentity"] = NetlifyIdentityWidget;
+window["netlifyIdentity"] = netlifyIdentity;
 
-NetlifyIdentityWidget.init();
+netlifyIdentity.init();
 
 const App = () => {
-    const [user, setUser] = React.useState(NetlifyIdentityWidget.currentUser());
+    const [user, setUser] = React.useState(netlifyIdentity.currentUser());
 
     React.useEffect(() => {
-        NetlifyIdentityWidget.on("login", (user) => {
+        netlifyIdentity.on("login", (user) => {
             setUser(user);
-            NetlifyIdentityWidget.close();
+            netlifyIdentity.close();
             console.log("login", user);
         });
-        NetlifyIdentityWidget.on("logout", () => {
+        netlifyIdentity.on("logout", () => {
             console.log("Logged out");
             setUser(null);
         });
-        NetlifyIdentityWidget.on("error", (err) => console.error("Error", err));
-        NetlifyIdentityWidget.on("open", () => console.log("Widget opened"));
-        NetlifyIdentityWidget.on("close", () => console.log("Widget closed"));
+        netlifyIdentity.on("error", (err) => console.error("Error", err));
+        netlifyIdentity.on("open", () => console.log("Widget opened"));
+        netlifyIdentity.on("close", () => console.log("Widget closed"));
     });
 
     React.useEffect(() => {
         if (!user) {
-            NetlifyIdentityWidget.open("login");
+            netlifyIdentity.close();
+            netlifyIdentity.open("login");
         }
     }, [user]);
 
