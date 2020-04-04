@@ -10,22 +10,28 @@ NetlifyIdentityWidget.init();
 
 const App = () => {
     const [user, setUser] = React.useState(NetlifyIdentityWidget.currentUser());
+
+    React.useEffect(() => {
+        NetlifyIdentityWidget.on("login", (user) => {
+            setUser(user);
+            NetlifyIdentityWidget.close();
+            console.log("login", user);
+        });
+        NetlifyIdentityWidget.on("logout", () => {
+            console.log("Logged out");
+            setUser(null);
+        });
+        NetlifyIdentityWidget.on("error", (err) => console.error("Error", err));
+        NetlifyIdentityWidget.on("open", () => console.log("Widget opened"));
+        NetlifyIdentityWidget.on("close", () => console.log("Widget closed"));
+    });
+
     React.useEffect(() => {
         if (!user) {
             NetlifyIdentityWidget.open("login");
-            NetlifyIdentityWidget.on("init", (user) => {
-                console.log("INITIED");
-                setUser(user);
-            });
-            NetlifyIdentityWidget.on("login", (user) => {
-                console.log("logged in");
-                setUser(user);
-                NetlifyIdentityWidget.close();
-            });
-        } else {
-            NetlifyIdentityWidget.close();
         }
     }, [user]);
+
     if (!user) {
         return null;
     }
