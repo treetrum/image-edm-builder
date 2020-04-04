@@ -4,7 +4,7 @@ import * as NetlifyIdentityWidget from "netlify-identity-widget";
 
 import ImageAdder from "./components/ImageAdder";
 
-window.netlifyIdentity = NetlifyIdentityWidget;
+window["netlifyIdentity"] = NetlifyIdentityWidget;
 
 NetlifyIdentityWidget.init();
 
@@ -13,13 +13,19 @@ const App = () => {
     React.useEffect(() => {
         if (!user) {
             NetlifyIdentityWidget.open("login");
+            NetlifyIdentityWidget.on("init", (user) => {
+                console.log("INITIED");
+                setUser(user);
+            });
             NetlifyIdentityWidget.on("login", (user) => {
+                console.log("logged in");
                 setUser(user);
                 NetlifyIdentityWidget.close();
             });
+        } else {
+            NetlifyIdentityWidget.close();
         }
     }, [user]);
-    console.log(user);
     if (!user) {
         return null;
     }
