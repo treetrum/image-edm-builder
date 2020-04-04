@@ -20,6 +20,8 @@ const ImageAdder = () => {
     const [publicUrl, setPublicUrl] = React.useState("");
     const [downloadLink, setDownloadLink] = React.useState("");
     const [loading, setLoading] = React.useState(false);
+    const [edmName, setEdmName] = React.useState("");
+    const [edmNameError, setEdmNameError] = React.useState(false);
     const fileUploadInputRef = React.useRef(null);
 
     React.useEffect(() => {
@@ -52,8 +54,8 @@ const ImageAdder = () => {
     const generateEDM = async () => {
         setLoading(true);
         const data = {
-            edm_id: "test-edm",
-            preheader: "Example preheader",
+            edm_id: edmName,
+            preheader: "",
             sections: sections.map((section) => ({
                 link: section.link || "",
                 alt: "",
@@ -105,17 +107,63 @@ const ImageAdder = () => {
             title="EDM Builder"
             body={
                 <>
-                    <div className="instructions">
-                        <h3>Links</h3>
-                        <ul>
-                            <li>
-                                Standard links must start with http:// or
-                                https://
-                            </li>
-                            <li>Email links must start with mailto:</li>
-                            <li>Phone links must start with tel:</li>
-                        </ul>
+                    <div className="edm-namer">
+                        <label className="edm-namer__label" htmlFor="edmName">
+                            EDM ID
+                        </label>
+                        {sections.length === 0 ? (
+                            <>
+                                <input
+                                    name="edmName"
+                                    id="edmName"
+                                    type="text"
+                                    value={edmName}
+                                    onChange={(event) => {
+                                        const value = event.target.value;
+                                        setEdmName(value.toLowerCase());
+                                        const re = new RegExp(
+                                            /^[a-z\-]+$/,
+                                            "g"
+                                        );
+                                        if (re.test(value)) {
+                                            setEdmNameError(false);
+                                        } else {
+                                            setEdmNameError(true);
+                                        }
+
+                                        if (value.includes(" ")) {
+                                        } else {
+                                        }
+                                    }}
+                                    className="edm-namer__input"
+                                    placeholder="example-edm-id"
+                                    disabled={sections.length !== 0}
+                                />
+                                <div
+                                    className={`edm-namer__${
+                                        edmNameError ? "error" : "info"
+                                    }`}
+                                >
+                                    lowercase letters & dashes only
+                                </div>
+                            </>
+                        ) : (
+                            <p>{edmName}</p>
+                        )}
                     </div>
+                    <hr />
+                    {sections.length === 0 && (
+                        <div>
+                            <input
+                                ref={fileUploadInputRef}
+                                type="file"
+                                id="image-upload"
+                                multiple
+                                onChange={handleFileUploadChange}
+                                disabled={!edmName || !!edmNameError}
+                            />
+                        </div>
+                    )}
                     <DragDropContext onDragEnd={handleDragEnd}>
                         <Droppable droppableId="reorderer">
                             {(provided) => (
@@ -160,17 +208,22 @@ const ImageAdder = () => {
                             )}
                         </Droppable>
                     </DragDropContext>
-                    {sections.length === 0 && (
-                        <div>
-                            <input
-                                ref={fileUploadInputRef}
-                                type="file"
-                                id="image-upload"
-                                multiple
-                                onChange={handleFileUploadChange}
-                            />
-                        </div>
-                    )}
+                    <hr />
+                    <div className="instructions">
+                        <h3>Link tips:</h3>
+                        <ul>
+                            <li>
+                                Standard links must start with{" "}
+                                <code>http://</code> or <code>https://</code>
+                            </li>
+                            <li>
+                                Email links must start with <code>mailto:</code>
+                            </li>
+                            <li>
+                                Phone links must start with <code>tel:</code>
+                            </li>
+                        </ul>
+                    </div>
                 </>
             }
             footer={
@@ -186,7 +239,11 @@ const ImageAdder = () => {
                         Download ZIP
                     </Button>
                     <Button visible={sections.length > 0} onClick={generateEDM}>
-                        {loading ? "Loading..." : "Generate EDM"}
+                        {loading
+                            ? "Loading..."
+                            : publicUrl
+                            ? "ReGenerate EDM"
+                            : "Generate EDM"}
                     </Button>
                     <Button
                         className="button button--red"
@@ -196,7 +253,21 @@ const ImageAdder = () => {
                     </Button>
                 </>
             }
-            preview={<EDMPreview sections={sections} />}
+            preview={
+                sections.length > 0 ? (
+                    <EDMPreview sections={sections} />
+                ) : (
+                    <div className="preview-info">
+                        <div className="preview-info__inner">
+                            <h3>EDM Preview</h3>
+                            <p>
+                                Once you have added some section to the EDM, a
+                                live preview will appear here.
+                            </p>
+                        </div>
+                    </div>
+                )
+            }
         />
     );
 };
