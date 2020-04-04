@@ -116,7 +116,6 @@ const ImageAdder = () => {
                             <li>Phone links must start with tel:</li>
                         </ul>
                     </div>
-                    <hr />
                     <DragDropContext onDragEnd={handleDragEnd}>
                         <Droppable droppableId="reorderer">
                             {(provided) => (
@@ -190,7 +189,6 @@ const ImageAdder = () => {
                         {loading ? "Loading..." : "Generate EDM"}
                     </Button>
                     <Button
-                        visible={sections.length > 0}
                         className="button button--red"
                         onClick={() => setSections([])}
                     >
