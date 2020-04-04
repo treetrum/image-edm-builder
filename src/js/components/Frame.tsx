@@ -1,18 +1,11 @@
 import * as React from "react";
-import imageCompression from "browser-image-compression";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import moveItemInArray from "../utils/moveItemInArray";
-import API from "../utils/API";
-import Button from "./Button";
-import EDMPreview from "./EDMPreview";
-import DragItem from "./DragItem";
 
 const Frame: React.FC<{
     title: string;
     body: React.ReactChild;
     footer: React.ReactChild;
     preview: React.ReactChild;
-}> = props => {
+}> = (props) => {
     return (
         <div className="frame">
             <div className="frame__sidebar">

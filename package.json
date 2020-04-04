@@ -14,7 +14,6 @@
   "dependencies": {
     "@types/react": "^16.9.32",
     "@types/react-dom": "^16.9.6",
-    "browser-image-compression": "^1.0.9",
     "normalize.css": "^8.0.1",
     "react": "^16.13.1",
     "react-beautiful-dnd": "^13.0.0",

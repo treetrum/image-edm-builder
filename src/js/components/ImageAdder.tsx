@@ -1,6 +1,6 @@
 import * as React from "react";
-import imageCompression from "browser-image-compression";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
 import moveItemInArray from "../utils/moveItemInArray";
 import API from "../utils/API";
 import Button from "./Button";
@@ -8,56 +8,56 @@ import EDMPreview from "./EDMPreview";
 import DragItem from "./DragItem";
 import Frame from "./Frame";
 
+interface SectionType {
+    file: File;
+    uploaded: boolean;
+    publicUrl?: string;
+    link?: string;
+}
+
 const ImageAdder = () => {
-    const [images, setImages] = React.useState<SectionType[]>([]);
+    const [sections, setSections] = React.useState<SectionType[]>([]);
     const [publicUrl, setPublicUrl] = React.useState("");
     const [downloadLink, setDownloadLink] = React.useState("");
-    const fileUploadInputRef = React.useRef(null);
     const [loading, setLoading] = React.useState(false);
+    const fileUploadInputRef = React.useRef(null);
 
     React.useEffect(() => {
-        const needsUploading = !!images.find((image) => !image.uploaded);
+        const needsUploading = !!sections.find((section) => !section.uploaded);
         if (!needsUploading) return;
         setLoading(true);
-        const promises = images.map(
-            async (image): Promise<SectionType> => {
-                if (!image.uploaded) {
-                    const compressed = await imageCompression(image.file, {
-                        maxSizeMB: 1,
-                        maxWidthOrHeight: 99999,
-                    });
-                    const { url, publicUrl } = await API.getPresignedURL(
-                        compressed
+        const promises = sections.map(
+            async (section): Promise<SectionType> => {
+                if (!section.uploaded) {
+                    const result = await API.compressAndUploadImage(
+                        section.file,
+                        "test-edm"
                     );
-                    await fetch(url, {
-                        method: "PUT",
-                        body: compressed,
-                    });
                     return {
-                        file: compressed,
-                        publicUrl: publicUrl,
+                        file: section.file,
+                        publicUrl: result.public_url,
                         uploaded: true,
                     };
                 } else {
-                    return image;
+                    return section;
                 }
             }
         );
-        Promise.all(promises).then((images) => {
-            setImages(images);
+        Promise.all(promises).then((sections) => {
+            setSections(sections);
             setLoading(false);
         });
-    }, [images]);
+    }, [sections]);
 
     const generateEDM = async () => {
         setLoading(true);
         const data = {
             edm_id: "test-edm",
             preheader: "Example preheader",
-            sections: images.map((image) => ({
-                link: image.link || "",
+            sections: sections.map((section) => ({
+                link: section.link || "",
                 alt: "",
-                public_url: image.publicUrl,
+                public_url: section.publicUrl,
             })),
         };
         const { publicURL, zipDownload } = await API.generateEDMLinks(data);
@@ -67,7 +67,7 @@ const ImageAdder = () => {
     };
 
     const handleDragEnd = ({ source, destination }) => {
-        setImages((old) => {
+        setSections((old) => {
             return moveItemInArray(old, source.index, destination.index);
         });
     };
@@ -82,20 +82,20 @@ const ImageAdder = () => {
                 uploaded: false,
             });
         }
-        setImages(newFiles);
+        setSections(newFiles);
         fileUploadInputRef.current.value = null;
     };
 
     const handleSectionURLChange = (index: number, value: string) => {
-        setImages((old) => {
-            return old.map((image, idx) => {
+        setSections((oldSections) => {
+            return oldSections.map((section, idx) => {
                 if (index === idx) {
                     return {
-                        ...image,
+                        ...section,
                         link: value,
                     };
                 }
-                return image;
+                return section;
             });
         });
     };
@@ -125,7 +125,7 @@ const ImageAdder = () => {
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
                                 >
-                                    {images.map(({ file }, index) => (
+                                    {sections.map(({ file }, index) => (
                                         <Draggable
                                             key={file.name}
                                             draggableId={file.name}
@@ -144,7 +144,7 @@ const ImageAdder = () => {
                                                     file={file}
                                                     inputProps={{
                                                         value:
-                                                            images[index]
+                                                            sections[index]
                                                                 .link || "",
                                                         onChange: (e) =>
                                                             handleSectionURLChange(
@@ -161,7 +161,7 @@ const ImageAdder = () => {
                             )}
                         </Droppable>
                     </DragDropContext>
-                    {images.length === 0 && (
+                    {sections.length === 0 && (
                         <div>
                             <input
                                 ref={fileUploadInputRef}
@@ -186,19 +186,19 @@ const ImageAdder = () => {
                     <Button visible={!!downloadLink} href={downloadLink}>
                         Download ZIP
                     </Button>
-                    <Button visible={images.length > 0} onClick={generateEDM}>
+                    <Button visible={sections.length > 0} onClick={generateEDM}>
                         {loading ? "Loading..." : "Generate EDM"}
                     </Button>
                     <Button
-                        visible={images.length > 0}
+                        visible={sections.length > 0}
                         className="button button--red"
-                        onClick={() => setImages([])}
+                        onClick={() => setSections([])}
                     >
                         Start again
                     </Button>
                 </>
             }
-            preview={<EDMPreview sections={images} />}
+            preview={<EDMPreview sections={sections} />}
         />
     );
 };
