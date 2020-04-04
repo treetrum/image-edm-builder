@@ -29,7 +29,7 @@ const DragItem = React.forwardRef<HTMLDivElement, PropsType>((props, ref) => {
                 <div className="drag-item__url-input">
                     <input
                         type="text"
-                        placeholder="Image URL (optional)"
+                        placeholder="Section link"
                         {...props.inputProps}
                     />
                 </div>

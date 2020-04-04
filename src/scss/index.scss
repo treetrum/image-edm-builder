@@ -52,7 +52,28 @@
         flex-grow: 1;
         flex-shrink: 1;
         overflow-y: auto;
-        // background-color: hsl(0, 0, 95%);
+
+        > * {
+            position: relative;
+            padding: 30px 0;
+
+            &::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 1px;
+                background-color: hsl(0, 0, 85%);
+            }
+
+            &:last-child {
+                padding-bottom: 0;
+            }
+            &:first-child {
+                padding-top: 0;
+            }
+        }
     }
 
     &__footer {
@@ -99,9 +120,14 @@
     transition: 200ms ease all;
     cursor: pointer;
     border-radius: 3px;
+    font-weight: 600;
 
     &:hover {
         opacity: 0.9;
+    }
+
+    &[disabled] {
+        opacity: 0.5;
     }
 
     &--red {
@@ -110,6 +136,7 @@
 }
 
 .orderer {
+    margin-bottom: -10px;
     > * {
         margin-bottom: 10px;
     }
@@ -171,7 +198,6 @@
     border: 1px solid hsl(0, 0, 90%);
     background-color: white;
     padding: 20px;
-    margin-bottom: 30px;
 
     h3 {
         margin-bottom: 10px;
@@ -201,10 +227,16 @@
 }
 
 .edm-namer {
-    margin: 0 0 30px;
     > * {
         display: block;
         margin: 10px 0;
+
+        &:first-child {
+            margin-top: 0;
+        }
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
 
     &__label {
@@ -217,6 +249,7 @@
         padding: 10px;
         border: 1px solid hsl(0, 0, 85%);
         background-color: white;
+        border-radius: 3px;
     }
 
     &__info {
@@ -241,7 +274,7 @@ hr {
 }
 
 .preview-info {
-    height: 100vh;
+    height: calc(100vh - 100px);
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -250,6 +283,10 @@ hr {
     text-align: center;
 
     &__inner {
-        max-width: 375px;
+        background-color: white;
+
+        > * {
+            margin: 0.5em 0;
+        }
     }
 }
