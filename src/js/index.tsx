@@ -5,6 +5,8 @@ import netlifyIdentity from "netlify-identity-widget";
 import ImageAdder from "./components/ImageAdder";
 import Button from "./components/Button";
 
+import StackMailLogo from "../images/stackmail-logo.svg";
+
 window["netlifyIdentity"] = netlifyIdentity;
 
 netlifyIdentity.init();
@@ -28,8 +30,15 @@ const App = () => {
             <div className="modal">
                 <div className="modal__inner">
                     <div className="login">
-                        <h2>Login to continue</h2>
+                        <div className="login__lockup">
+                            <img
+                                src={StackMailLogo}
+                                alt="StackMail Logo"
+                                className="login__logo"
+                            />
+                        </div>
                         <Button
+                            className="login__button"
                             onClick={() => {
                                 netlifyIdentity.open("login");
                             }}

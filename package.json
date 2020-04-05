@@ -1,15 +1,15 @@
 {
-  "name": "image-edm-builder",
+  "name": "stackmail",
   "version": "1.0.0",
-  "description": "",
+  "description": "StackMail - An image based EDM creation tool",
   "main": "index.js",
   "scripts": {
     "start": "parcel src/index.html",
     "build": "parcel build src/index.html",
     "postbuild": "node scripts/dependancy-installer.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["edm", "creator", "visual", "drag and drop"],
+  "author": "Sam Davis <sam@sjd.co>",
   "license": "ISC",
   "dependencies": {
     "@types/netlify-identity-widget": "^1.4.1",

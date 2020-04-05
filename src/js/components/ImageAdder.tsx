@@ -11,6 +11,8 @@ import TreeInput from "./TreeInput";
 import { User } from "netlify-identity-widget";
 import SpinnerSVG from "../../images/spinner.svg";
 
+import StackMailLogo from "../../images/stackmail-logo.svg";
+
 export interface SectionType {
     file: File;
     uploaded: boolean;
@@ -171,7 +173,7 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
 
     return (
         <Frame
-            title="EDM Creator"
+            title={<img src={StackMailLogo} alt="StackMail Logo" />}
             body={
                 <>
                     <div>

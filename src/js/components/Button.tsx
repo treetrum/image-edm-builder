@@ -13,10 +13,13 @@ const Button: React.FC<
             React.AnchorHTMLAttributes<HTMLAnchorElement>,
             HTMLAnchorElement
         >
-> = ({ visible, children, size, color, ...props }) => {
+> = ({ visible, children, size, color, className, ...props }) => {
     if (!visible) return null;
     return (
-        <a className={`button button--${size} button--${color}`} {...props}>
+        <a
+            className={`button button--${size} button--${color} ${className}`}
+            {...props}
+        >
             {children}
         </a>
     );

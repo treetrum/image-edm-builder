@@ -1,7 +1,7 @@
 import * as React from "react";
 
 const Frame: React.FC<{
-    title: string;
+    title: React.ReactChild;
     body: React.ReactChild;
     footer: React.ReactChild;
     preview: React.ReactChild;
@@ -11,9 +11,7 @@ const Frame: React.FC<{
             <div className="frame__sidebar">
                 <div className="sidebar">
                     <div className="sidebar__header">
-                        <div className="sidebar__title">
-                            <h1>{props.title}</h1>
-                        </div>
+                        <div className="sidebar__title">{props.title}</div>
                     </div>
                     <div className="sidebar__body">{props.body}</div>
                     <div className="sidebar__footer">{props.footer}</div>
