@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { SectionType } from "./ImageAdder";
+import { SectionType } from "../Types";
 
 const EDMPreview: React.FC<{
     sections: SectionType[];

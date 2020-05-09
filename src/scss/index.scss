@@ -22,11 +22,9 @@ $red: #df5151;
         position: fixed;
         top: 0;
         left: 0;
-        // overflow-y: auto;
     }
 
     &__preview {
-        padding: 50px;
         flex-grow: 1;
         margin-left: 400px;
     }
@@ -104,7 +102,6 @@ $red: #df5151;
 }
 
 .edm-preview {
-    box-shadow: 0 0 40px rgba(black, 0.2);
     width: 100%;
     max-width: 600px;
     display: block;
@@ -119,6 +116,7 @@ $red: #df5151;
         z-index: 1;
         box-shadow: 0 0 0 2px $red;
     }
+
     .not-focussed {
         opacity: 0.25;
     }

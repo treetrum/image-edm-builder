@@ -6,6 +6,8 @@ import SpinnerSVG from "../../images/spinner.svg";
 import StackMailLogo from "../../images/stackmail-logo.svg";
 import { SectionType, EDMDataType } from "../Types";
 import moveItemInArray from "../utils/moveItemInArray";
+import useFormInputs from "../hooks/useFormInputs";
+import useMergableState from "../hooks/useMergableState";
 import Button from "./Button";
 import EDMPreview from "./EDMPreview";
 import DragItem from "./DragItem";
@@ -14,26 +16,32 @@ import TreeInput from "./TreeInput";
 
 const ImageAdder: React.FC<{ user: User }> = (props) => {
     const Api = new API(props.user);
-
     const fileUploadInputRef = React.useRef(null);
-    const [sections, setSections] = React.useState<SectionType[]>([]);
-    const [publicUrl, setPublicUrl] = React.useState("");
-    const [downloadLink, setDownloadLink] = React.useState("");
-    const [loading, setLoading] = React.useState(false);
-    const [edmName, setEdmName] = React.useState("");
-    const [edmNameError, setEdmNameError] = React.useState(false);
-    const imagesUploading = !!sections.find((section) => !section.uploaded);
-    const [preheader, setPreheader] = React.useState("");
-    const [focussedImage, setFocussedImage] = React.useState<null | number>(null);
+    const { formInputs, setInputValue, setInputError } = useFormInputs({
+        id: { value: "", error: "" },
+        preHeader: { value: "", error: "" },
+    });
+    const { state, setState } = useMergableState({
+        publicUrl: "",
+        downloadLink: "",
+        loading: false,
+        focussedImage: null,
+        sections: [] as SectionType[],
+    });
+
+    const imagesUploading = !!state.sections.find((section) => !section.uploaded);
 
     React.useEffect(() => {
-        const needsUploading = !!sections.find((section) => !section.uploaded);
+        const needsUploading = !!state.sections.find((section) => !section.uploaded);
         if (!needsUploading) return;
-        setLoading(true);
-        const promises = sections.map(
+        setState({ loading: true });
+        const promises = state.sections.map(
             async (section): Promise<SectionType> => {
                 if (!section.uploaded) {
-                    const result = await Api.compressAndUploadImage(section.file, edmName);
+                    const result = await Api.compressAndUploadImage(
+                        section.file,
+                        formInputs.id.value
+                    );
                     return {
                         file: section.file,
                         publicUrl: result.public_url,
@@ -45,34 +53,40 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
             }
         );
         Promise.all(promises).then((sections) => {
-            setSections(sections);
-            setLoading(false);
+            setState({
+                sections,
+                loading: false,
+            });
         });
-    }, [sections]);
+    }, [state.sections]);
 
     const generateEDM = async (): Promise<void> => {
-        setPublicUrl("");
-        setDownloadLink("");
-        setLoading(true);
+        setState({
+            publicUrl: "",
+            downloadLink: "",
+            loading: true,
+        });
         const data: EDMDataType = {
-            edm_id: edmName,
-            preheader: preheader,
-            sections: sections.map((section) => ({
+            edm_id: formInputs.id.value,
+            preheader: formInputs.preHeader.value,
+            sections: state.sections.map((section) => ({
                 link: section.link || "",
                 alt: "",
                 public_url: section.publicUrl,
             })),
         };
         const { publicURL, zipDownload } = await Api.generateEDMLinks(data);
-        setPublicUrl(publicURL);
-        setDownloadLink(zipDownload);
-        setLoading(false);
+        setState({
+            publicUrl: publicURL,
+            downloadLink: zipDownload,
+            loading: false,
+        });
     };
 
     const handleDragEnd = ({ source, destination }: DropResult) => {
-        setFocussedImage(null);
-        setSections((old) => {
-            return moveItemInArray(old, source.index, destination.index);
+        setState({
+            focussedImage: null,
+            sections: moveItemInArray(state.sections, source.index, destination.index),
         });
     };
 
@@ -84,13 +98,13 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                 uploaded: false,
             });
         }
-        setSections(newFiles);
+        setState({ sections: newFiles });
         fileUploadInputRef.current.value = null;
     };
 
     const handleSectionURLChange = (index: number, value: string) => {
-        setSections((oldSections) => {
-            return oldSections.map((section, idx) => {
+        setState({
+            sections: state.sections.map((section, idx) => {
                 if (index === idx) {
                     return {
                         ...section,
@@ -98,7 +112,7 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                     };
                 }
                 return section;
-            });
+            }),
         });
     };
 
@@ -112,7 +126,7 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                         >
-                            {sections.map(({ file }, index) => (
+                            {state.sections.map(({ file }, index) => (
                                 <Draggable key={file.name} draggableId={file.name} index={index}>
                                     {(provided) => (
                                         <DragItem
@@ -122,14 +136,14 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                                             draggableProps={provided.draggableProps}
                                             file={file}
                                             inputProps={{
-                                                value: sections[index].link || "",
+                                                value: state.sections[index].link || "",
                                                 onChange: (e) =>
                                                     handleSectionURLChange(index, e.target.value),
                                                 onFocus: () => {
-                                                    setFocussedImage(index);
+                                                    setState({ focussedImage: index });
                                                 },
                                                 onBlur: () => {
-                                                    setFocussedImage(null);
+                                                    setState({ focussedImage: null });
                                                 },
                                             }}
                                         />
@@ -154,39 +168,39 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                             id="edm-name"
                             label="Unique ID"
                             info={
-                                sections.length !== 0
+                                state.sections.length !== 0
                                     ? `Click "Start Again" to change this`
-                                    : edmNameError
+                                    : formInputs.id.error
                                     ? ""
                                     : "Lowercase letters & dashes only"
                             }
-                            error={edmNameError ? "Lowercase letters & dashes only" : ""}
-                            value={edmName}
+                            error={formInputs.id.error ? "Lowercase letters & dashes only" : ""}
+                            value={formInputs.id.value}
                             onChange={(event) => {
                                 const value = event.target.value;
-                                setEdmName(value.toLowerCase());
+                                setInputValue("id", value.toLowerCase());
                                 const re = new RegExp(/^[a-z\-]+$/, "g");
                                 if (re.test(value)) {
-                                    setEdmNameError(false);
+                                    setInputError("id", "");
                                 } else {
-                                    setEdmNameError(true);
+                                    setInputError("id", "true");
                                 }
                             }}
                             placeholder="example-edm-id"
-                            disabled={sections.length !== 0}
+                            disabled={state.sections.length !== 0}
                         />
                         <TreeInput
                             id="preheader"
                             label="Pre Header Text"
                             info="Shown under the subject line in email clients"
                             onChange={(event) => {
-                                setPreheader(event.target.value);
+                                setInputValue("preHeader", event.target.value);
                             }}
-                            value={preheader}
+                            value={formInputs.preHeader.value}
                         />
                     </div>
 
-                    {sections.length === 0 ? (
+                    {state.sections.length === 0 ? (
                         <div>
                             <input
                                 ref={fileUploadInputRef}
@@ -194,11 +208,13 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                                 id="image-upload"
                                 multiple
                                 onChange={handleFileUploadChange}
-                                disabled={!edmName || !!edmNameError}
+                                disabled={!formInputs.id.value || !!formInputs.id.error}
                                 hidden
                             />
                             <label htmlFor="image-upload">
-                                <Button disabled={!edmName || !!edmNameError}>Choose files</Button>
+                                <Button disabled={!formInputs.id.value || !!formInputs.id.error}>
+                                    Choose files
+                                </Button>
                             </label>
                         </div>
                     ) : (
@@ -225,21 +241,27 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
             }
             footer={
                 <>
-                    <Button visible={!!publicUrl} href={publicUrl} target="_blank">
+                    <Button visible={!!state.publicUrl} href={state.publicUrl} target="_blank">
                         View in browser
                     </Button>
-                    <Button visible={!!downloadLink} href={downloadLink}>
+                    <Button visible={!!state.downloadLink} href={state.downloadLink}>
                         Download ZIP
                     </Button>
-                    <Button visible={sections.length > 0} onClick={generateEDM}>
-                        {loading ? "Loading..." : publicUrl ? "ReGenerate EDM" : "Generate EDM"}
+                    <Button visible={state.sections.length > 0} onClick={generateEDM}>
+                        {state.loading
+                            ? "Loading..."
+                            : state.publicUrl
+                            ? "ReGenerate EDM"
+                            : "Generate EDM"}
                     </Button>
                     <Button
                         className="button button--red"
                         onClick={() => {
-                            setPublicUrl("");
-                            setDownloadLink("");
-                            setSections([]);
+                            setState({
+                                publicUrl: "",
+                                downloadLink: "",
+                                sections: [],
+                            });
                         }}
                     >
                         Start again
@@ -247,8 +269,11 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                 </>
             }
             preview={
-                sections.length > 0 && !imagesUploading ? (
-                    <EDMPreview focussedImageIndex={focussedImage} sections={sections} />
+                state.sections.length > 0 && !imagesUploading ? (
+                    <EDMPreview
+                        focussedImageIndex={state.focussedImage}
+                        sections={state.sections}
+                    />
                 ) : (
                     <div className="preview-info">
                         <div className="preview-info__inner">
