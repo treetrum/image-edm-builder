@@ -45,7 +45,7 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                 if (!section.uploaded) {
                     const result = await Api.compressAndUploadImage(
                         section.file,
-                        "test-edm"
+                        edmName
                     );
                     return {
                         file: section.file,
