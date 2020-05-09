@@ -1,9 +1,13 @@
 import * as React from "react";
+import {
+    DraggableProvidedDraggableProps,
+    DraggableProvidedDragHandleProps,
+} from "react-beautiful-dnd";
 import DragIndicator from "./DragIndicator";
 
 interface PropsType {
-    draggableProps: any;
-    dragHandleProps: any;
+    draggableProps: DraggableProvidedDraggableProps;
+    dragHandleProps: DraggableProvidedDragHandleProps;
     index: number;
     file: File;
     inputProps: React.DetailedHTMLProps<
@@ -12,7 +16,7 @@ interface PropsType {
     >;
 }
 
-const DragItem = React.forwardRef<HTMLDivElement, PropsType>((props, ref) => {
+const DragItem = (props: PropsType, ref: React.Ref<HTMLDivElement>) => {
     return (
         <div
             {...props.draggableProps}
@@ -27,15 +31,11 @@ const DragItem = React.forwardRef<HTMLDivElement, PropsType>((props, ref) => {
             <div className="drag-item__content">
                 <div className="drag-item__name">{props.file.name}</div>
                 <div className="drag-item__url-input">
-                    <input
-                        type="text"
-                        placeholder="Section link"
-                        {...props.inputProps}
-                    />
+                    <input type="text" placeholder="Section link" {...props.inputProps} />
                 </div>
             </div>
         </div>
     );
-});
+};
 
-export default DragItem;
+export default React.forwardRef<HTMLDivElement, PropsType>(DragItem);

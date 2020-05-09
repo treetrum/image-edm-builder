@@ -1,24 +1,16 @@
 import * as React from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-
-import moveItemInArray from "../utils/moveItemInArray";
+import { User } from "netlify-identity-widget";
+import { DragDropContext, Draggable, Droppable, DropResult } from "react-beautiful-dnd";
 import API from "../utils/API";
+import SpinnerSVG from "../../images/spinner.svg";
+import StackMailLogo from "../../images/stackmail-logo.svg";
+import { SectionType, EDMDataType } from "../Types";
+import moveItemInArray from "../utils/moveItemInArray";
 import Button from "./Button";
 import EDMPreview from "./EDMPreview";
 import DragItem from "./DragItem";
 import Frame from "./Frame";
 import TreeInput from "./TreeInput";
-import { User } from "netlify-identity-widget";
-import SpinnerSVG from "../../images/spinner.svg";
-
-import StackMailLogo from "../../images/stackmail-logo.svg";
-
-export interface SectionType {
-    file: File;
-    uploaded: boolean;
-    publicUrl?: string;
-    link?: string;
-}
 
 const ImageAdder: React.FC<{ user: User }> = (props) => {
     const Api = new API(props.user);
@@ -32,9 +24,7 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
     const [edmNameError, setEdmNameError] = React.useState(false);
     const imagesUploading = !!sections.find((section) => !section.uploaded);
     const [preheader, setPreheader] = React.useState("");
-    const [focussedImage, setFocussedImage] = React.useState<null | number>(
-        null
-    );
+    const [focussedImage, setFocussedImage] = React.useState<null | number>(null);
 
     React.useEffect(() => {
         const needsUploading = !!sections.find((section) => !section.uploaded);
@@ -43,10 +33,7 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
         const promises = sections.map(
             async (section): Promise<SectionType> => {
                 if (!section.uploaded) {
-                    const result = await Api.compressAndUploadImage(
-                        section.file,
-                        edmName
-                    );
+                    const result = await Api.compressAndUploadImage(section.file, edmName);
                     return {
                         file: section.file,
                         publicUrl: result.public_url,
@@ -63,11 +50,11 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
         });
     }, [sections]);
 
-    const generateEDM = async () => {
+    const generateEDM = async (): Promise<void> => {
         setPublicUrl("");
         setDownloadLink("");
         setLoading(true);
-        const data = {
+        const data: EDMDataType = {
             edm_id: edmName,
             preheader: preheader,
             sections: sections.map((section) => ({
@@ -82,16 +69,14 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
         setLoading(false);
     };
 
-    const handleDragEnd = ({ source, destination }) => {
+    const handleDragEnd = ({ source, destination }: DropResult) => {
         setFocussedImage(null);
         setSections((old) => {
             return moveItemInArray(old, source.index, destination.index);
         });
     };
 
-    const handleFileUploadChange = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
+    const handleFileUploadChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newFiles: SectionType[] = [];
         for (const file of event.target.files) {
             newFiles.push({
@@ -125,33 +110,21 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                         <div
                             className="orderer"
                             ref={provided.innerRef}
-                            {...provided.draggableProps}
+                            {...provided.droppableProps}
                         >
                             {sections.map(({ file }, index) => (
-                                <Draggable
-                                    key={file.name}
-                                    draggableId={file.name}
-                                    index={index}
-                                >
+                                <Draggable key={file.name} draggableId={file.name} index={index}>
                                     {(provided) => (
                                         <DragItem
                                             index={index}
                                             ref={provided.innerRef}
-                                            dragHandleProps={
-                                                provided.dragHandleProps
-                                            }
-                                            draggableProps={
-                                                provided.draggableProps
-                                            }
+                                            dragHandleProps={provided.dragHandleProps}
+                                            draggableProps={provided.draggableProps}
                                             file={file}
                                             inputProps={{
-                                                value:
-                                                    sections[index].link || "",
+                                                value: sections[index].link || "",
                                                 onChange: (e) =>
-                                                    handleSectionURLChange(
-                                                        index,
-                                                        e.target.value
-                                                    ),
+                                                    handleSectionURLChange(index, e.target.value),
                                                 onFocus: () => {
                                                     setFocussedImage(index);
                                                 },
@@ -187,11 +160,7 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                                     ? ""
                                     : "Lowercase letters & dashes only"
                             }
-                            error={
-                                edmNameError
-                                    ? "Lowercase letters & dashes only"
-                                    : ""
-                            }
+                            error={edmNameError ? "Lowercase letters & dashes only" : ""}
                             value={edmName}
                             onChange={(event) => {
                                 const value = event.target.value;
@@ -229,9 +198,7 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                                 hidden
                             />
                             <label htmlFor="image-upload">
-                                <Button disabled={!edmName || !!edmNameError}>
-                                    Choose files
-                                </Button>
+                                <Button disabled={!edmName || !!edmNameError}>Choose files</Button>
                             </label>
                         </div>
                     ) : (
@@ -242,17 +209,14 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
                             <h3>Link tips:</h3>
                             <ul>
                                 <li>
-                                    Standard links must start with{" "}
-                                    <code>http://</code> or{" "}
+                                    Standard links must start with <code>http://</code> or{" "}
                                     <code>https://</code>
                                 </li>
                                 <li>
-                                    Email links must start with{" "}
-                                    <code>mailto:</code>
+                                    Email links must start with <code>mailto:</code>
                                 </li>
                                 <li>
-                                    Phone links must start with{" "}
-                                    <code>tel:</code>
+                                    Phone links must start with <code>tel:</code>
                                 </li>
                             </ul>
                         </div>
@@ -261,22 +225,14 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
             }
             footer={
                 <>
-                    <Button
-                        visible={!!publicUrl}
-                        href={publicUrl}
-                        target="_blank"
-                    >
+                    <Button visible={!!publicUrl} href={publicUrl} target="_blank">
                         View in browser
                     </Button>
                     <Button visible={!!downloadLink} href={downloadLink}>
                         Download ZIP
                     </Button>
                     <Button visible={sections.length > 0} onClick={generateEDM}>
-                        {loading
-                            ? "Loading..."
-                            : publicUrl
-                            ? "ReGenerate EDM"
-                            : "Generate EDM"}
+                        {loading ? "Loading..." : publicUrl ? "ReGenerate EDM" : "Generate EDM"}
                     </Button>
                     <Button
                         className="button button--red"
@@ -292,25 +248,17 @@ const ImageAdder: React.FC<{ user: User }> = (props) => {
             }
             preview={
                 sections.length > 0 && !imagesUploading ? (
-                    <EDMPreview
-                        focussedImageIndex={focussedImage}
-                        sections={sections}
-                    />
+                    <EDMPreview focussedImageIndex={focussedImage} sections={sections} />
                 ) : (
                     <div className="preview-info">
                         <div className="preview-info__inner">
                             {imagesUploading ? (
-                                <img
-                                    style={{ width: 75 }}
-                                    src={SpinnerSVG}
-                                    alt=""
-                                />
+                                <img style={{ width: 75 }} src={SpinnerSVG} alt="" />
                             ) : (
                                 <>
                                     <h3>EDM Preview</h3>
                                     <p>
-                                        A live preview of your EDM will appear
-                                        here once you begin
+                                        A live preview of your EDM will appear here once you begin
                                     </p>
                                 </>
                             )}

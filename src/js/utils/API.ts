@@ -1,10 +1,9 @@
 import { User } from "netlify-identity-widget";
-
-interface EDMDataType {}
+import { EDMDataType } from "../Types";
 
 const encodeImageFileAsURL = (file: File): Promise<string> => {
     return new Promise((resolve) => {
-        var reader = new FileReader();
+        const reader = new FileReader();
         reader.onloadend = function () {
             if (typeof reader.result === "string") {
                 resolve(reader.result.replace("data:image/jpeg;base64,", ""));
@@ -42,19 +41,16 @@ class API {
         edmId: string
     ): Promise<{ success: boolean; public_url: string }> => {
         const base64Encoded = await encodeImageFileAsURL(file);
-        const res = await fetch(
-            "/.netlify/functions/compress_and_upload_image",
-            {
-                method: "POST",
-                headers: this.defaultHeaders,
-                body: JSON.stringify({
-                    file_type: file.type,
-                    file_name: file.name,
-                    edm_id: edmId,
-                    image: base64Encoded,
-                }),
-            }
-        );
+        const res = await fetch("/.netlify/functions/compress_and_upload_image", {
+            method: "POST",
+            headers: this.defaultHeaders,
+            body: JSON.stringify({
+                file_type: file.type,
+                file_name: file.name,
+                edm_id: edmId,
+                image: base64Encoded,
+            }),
+        });
         return await res.json();
     };
 }

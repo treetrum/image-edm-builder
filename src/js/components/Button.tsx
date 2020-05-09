@@ -5,6 +5,7 @@ interface PropsType {
     children: React.ReactChild;
     size?: "small" | "regular";
     color?: "red" | "blue";
+    disabled?: boolean;
 }
 
 const Button: React.FC<

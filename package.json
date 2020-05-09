@@ -8,12 +8,18 @@
     "build": "parcel build src/index.html",
     "postbuild": "node scripts/dependancy-installer.js"
   },
-  "keywords": ["edm", "creator", "visual", "drag and drop"],
+  "keywords": [
+    "edm",
+    "creator",
+    "visual",
+    "drag and drop"
+  ],
   "author": "Sam Davis <sam@sjd.co>",
   "license": "ISC",
   "dependencies": {
     "@types/netlify-identity-widget": "^1.4.1",
     "@types/react": "^16.9.32",
+    "@types/react-beautiful-dnd": "^12.1.2",
     "@types/react-dom": "^16.9.6",
     "netlify-identity-widget": "^1.5.6",
     "normalize.css": "^8.0.1",
@@ -22,7 +28,12 @@
     "react-dom": "^16.13.1"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.31.0",
+    "@typescript-eslint/parser": "^2.31.0",
     "child_process": "^1.0.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-react": "^7.19.0",
     "globby": "^11.0.0",
     "parcel-bundler": "^1.12.4",
     "sass": "^1.26.3",
