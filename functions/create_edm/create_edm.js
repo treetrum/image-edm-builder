@@ -1,10 +1,8 @@
+const path = require("path");
+const fs = require("fs");
 const AWS = require("aws-sdk");
 const request = require("request-promise");
 const JSZip = require("jszip");
-const mime = require("mime");
-const path = require("path");
-const fs = require("fs");
-const minifyHTML = require("html-minifier").minify;
 
 const TEMPLATE_PATH = path.join(__dirname, "./template.html");
 
@@ -24,8 +22,18 @@ const upload = (config) => {
     });
 };
 
+const createImageMarkup = (imageUrl, link) => {
+    return `<tr>
+        <td>
+            ${link ? `<a href="${link}">` : ""}
+            <img src="${imageUrl}" alt="" style="display: block;" width="100%"/>
+            ${link ? `</a>` : ""}
+        </td>
+    </tr>`;
+};
+
 exports.handler = async (event, context) => {
-    const { identity, user } = context.clientContext;
+    const { user } = context.clientContext;
     if (!user || !user.email) {
         return {
             statusCode: 401,
@@ -44,7 +52,7 @@ exports.handler = async (event, context) => {
 
     // Generate the markup for each section
     let imagesMarkup = [];
-    let imagesData = [];
+    const imagesData = [];
 
     const promises = data.sections.map(async (section) => {
         console.log(`Downloading: ${section.public_url}`);
@@ -58,15 +66,7 @@ exports.handler = async (event, context) => {
                 data: Buffer.from(downloaded, "utf8"),
                 name: section.public_url.split("/").pop(),
             },
-            markup: `<tr>
-                <td>
-                    ${section.link ? `<a href="${section.link}">` : ""}
-                    <img src="${
-                        section.public_url
-                    }" alt="" style="width: 600px" width="600"/>
-                    ${section.link ? `</a>` : ""}
-                </td>
-            </tr>`,
+            markup: createImageMarkup(section.public_url, section.link),
         };
     });
 
@@ -79,15 +79,11 @@ exports.handler = async (event, context) => {
     imagesMarkup = imagesMarkup.join("\n");
 
     console.log("Generating markup");
-    // Replace all variables with filled in content, minify the HTML
-    const responseBody = minifyHTML(
-        template
-            .replace("{{images}}", imagesMarkup)
-            .replace("{{preheader}}", data.preheader),
-        {
-            collapseWhitespace: true,
-        }
-    );
+
+    // Replace all variables with filled in content
+    const responseBody = template
+        .replace("{{images}}", imagesMarkup)
+        .replace("{{preheader}}", data.preheader);
 
     // Create a zip
     console.log("Creating zip");

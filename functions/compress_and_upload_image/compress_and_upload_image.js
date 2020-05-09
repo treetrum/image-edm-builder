@@ -1,5 +1,3 @@
-const path = require("path");
-const fs = require("fs");
 const AWS = require("aws-sdk");
 const Jimp = require("jimp");
 
@@ -41,7 +39,7 @@ const checkParams = (body, params) => {
 };
 
 exports.handler = async (event, context) => {
-    const { identity, user } = context.clientContext;
+    const { user } = context.clientContext;
     if (!user || !user.email) {
         return {
             statusCode: 401,
@@ -55,12 +53,7 @@ exports.handler = async (event, context) => {
     const body = JSON.parse(event.body);
 
     // Check requried params
-    const paramError = checkParams(body, [
-        "image",
-        "file_type",
-        "file_name",
-        "edm_id",
-    ]);
+    const paramError = checkParams(body, ["image", "file_type", "file_name", "edm_id"]);
     if (paramError) {
         return paramError;
     }
@@ -69,9 +62,7 @@ exports.handler = async (event, context) => {
     const decodedImage = Buffer.from(encodedImage, "base64");
 
     const jimpImage = await Jimp.read(decodedImage);
-    const compressed = await jimpImage
-        .quality(85)
-        .getBufferAsync(body.file_type);
+    const compressed = await jimpImage.quality(85).getBufferAsync(body.file_type);
 
     // Log file sizes
     console.log({
@@ -102,7 +93,7 @@ exports.handler = async (event, context) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             success: true,
-            public_url: uploadResponse.Location,
+            public_url: uploadResponse.Location.replace("https://", "http://"),
         }),
     };
 };
